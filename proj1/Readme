@@ -1,0 +1,31 @@
+Report(UFID: 81867475)
+
+Classes in the project
+--------------------------------
+Start
+TreeVisitor
+Tree
+Semaphore
+
+Main thread Start, reads the input from the file and parses it. A tree object is created here which is shared by all the threads
+
+Input is read from system.properties file and output is written to output.log and event.log
+
+Start spawns the threads by instantiating array of TreeVisitor thread class objects and passing the info(sleep time, no of times it should traverse) needed for each of them to run and it waits for them to finish.
+
+Each thread after started running, waits/sleeps for the time given, before going into critical section. Once this is done, it starts traversing the tree from bottom to up. While going up the semaphore blocks the thread if  it is acquired by the other and waits for the lock to be released. Once the thread reaches root it sleeps for some specific time and print the state of all internal nodes and starts releasing lock by traversing to bottom.
+
+Thread delegates traversals to tree class.  Binary tree traversal are simulated from node n by considering the tree nodes as numbers between 1 and 2n-1(n leaves and n-1 internal nodes as given n is a power of two). Last n nodes are leaves and first n-1 are internal nodes to be precise. Traversal from bottom is done by going to parent from bottom to up by halving the node number we start from. Similarly traversal down the tree is done.
+
+Tree class uses Semaphore class to ensure mutual exclusion while traveling up/down the tree. In Tree class each internal node will have a corresponding semaphore associated with it. Semaphore has method P() which acquires lock if available or blocks the thread if already acquired. This is done by using wait() which block the thread until notify is called by a thread that has acquired lock. The method V() releases lock and notify waiting threads. Semaphore store/keeps track of all the info about the threads that acquire or waiting for it. The key here is use of synchronized keyword. Without it, P and V cannot be implemented correctly.
+
+Once the root node is reached the thread goes in to  critical section and requests tree for information related to state of semaphores and prints it in to file output.log and stores the event related to that specific run in to a static variable shared by all threads. Once all threads finish running events are written to event.log file.
+
+Challenges
+-----------------
+First, I didn't understand why we can't simply use the synchronized keyword provided by language to traverse the tree. I was new to Java and had partial understanding of concurrency features in Java before doing this assignment. As synchronized block on whole object our traversals by threads will become sequential if I had used this. What we need is fine grain locking ie locking on particular node. This can be done by synchronized blocks. But there is a limitation to this. critical section has to be within this block ie. code within this block is only. The lock is released as soon as it gets out of the block. In our cases we had to execute critical section else where in our TreeVisitor thread.  So we need more control on locking. Semaphores solve this problem by giving us more control over locking.
+
+
+Learnings
+--------------
+Completely understood how basic Binary Semaphores work internally. Why Synchronized keyword doesn't work as replacement to semaphore. How synchronized  keyword is used to do more fine grain locking.

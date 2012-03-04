@@ -1,0 +1,50 @@
+UFID: 81867475
+Dos Assignment 2:
+
+Overview of Program Layout.
+
+The program first parses the input file and stores the properties in a hash. 
+
+As described in chat room "java Start"(could be running on thunder/anywhere)  spawns the root server from properties file by execing the "java Site" on
+root. This root will manage the communication as described in assignment.
+
+It might take some time after running "java Start" on any server to see output.log
+or you can start java Site on root node.
+
+Some classes in the project.
+
+Node class is key and where all the things happen. At every node there will be a server thread running and client sockets are created when neccassary. First the connection is setup after process are spawned(more about this in challenges section), after that it starts server and clock thread 
+
+Server thread class: Listen on port for updates and manages the communication loop
+
+Clock thread class: Manage the clock thread.
+
+
+Challenges:
+Process spawning: We need to make the root process block until all its childrens are spwaned. We will recursively spawn the process in the following way.
+Initialize a server at the node.
+Spawn left child and block the socket if not leaf.
+spawn right child and block the socket if not leaf.
+connect to parent, which is a confirmation that left/right subtree is fully formed.
+
+Communication loop:
+Count the loop and exiting after a while was a bit challenging.
+In one  loop a node does following before incrementing  loop counter.
+It listens to receive info from parent.
+Sends it children updates.
+receives updates from children.
+send update to parent.
+
+File update: Since we are updating File on a Network mounted hard drive, we should make sure only one process, root, is updating the file contents. Checking whether current process would be root or not is enough before printing.
+
+Clock update: We need a way to send clock received from childred/parent of node to the clock thread. Synchronized Blocking Queue seems to be a good fit here. This is a good example of Producer/Consumer problem. And, we need to make sure the clock object is sychronised as it could receive updates from two of it's childeren which could lead to a race condition.
+
+Serialize: One thing which wasn't obvious was whether we a node should to send all the updates of children clocks along with it's to parent. This is neccassry because we need all the values at root node for printing. So Clock array for all nodes is serialized to space seprating string of values along with sending node id. At the receving node only values of it decendants of sending nodes are updated.
+
+Learnings:
+
+Distributed co-ordination of process is more clear after doing the project. 
+Communication between two threads.
+Logical clocks in Distributed systems.
+
+
